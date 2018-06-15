@@ -2,6 +2,11 @@ import tensorflow as tf
 import wfdb
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.signal import argrelextrema
+import more_itertools as mit
+from math import floor
+from scipy.ndimage import gaussian_filter
+import tensorflow.contrib.layers as lays
 
 patientID = str(112)
 """
@@ -15,15 +20,10 @@ print(len(errs))
 print(errs)
 """
 record = wfdb.rdsamp(patientID); print(record)
-
 data = np.array(record[0]); np.shape(data)
-
-from scipy.signal import argrelextrema
-import more_itertools as mit
 
 def bigmaximum(x):
   return argrelextrema(x, np.greater_equal, order=120)
-
 
 # get "really big" maxima
 maxima = (bigmaximum(data[:,0])[0], bigmaximum(data[:,1],)[0])
@@ -59,14 +59,12 @@ print(f"  p98:     ({p98_span[0]:3.0f}, {p98_span[1]:3.0f})")
 
 # rp = plt.plot(data[0:500,:], linewidth=1); plt.show(rp)
 
-from scipy.ndimage import gaussian_filter
 """data_fil = gaussian_filter(data[0:500,0], sigma=2)
 data_fil2 = gaussian_filter(data[0:500,1], sigma=2)
 plt.plot(data_fil, linewidth=1)
 plt.plot(data_fil2, linewidth=1)
 plt.show()
 """
-
 
 def betweenMaxima(data, idx):
   # dla pierwszego i ostatniego to zaslepka
@@ -96,8 +94,6 @@ for i in range(0, 5):
   rp = plt.plot(s1, linewidth=1)
   plt.show(rp)
 """
-from math import floor
-
 
 def rebin(a, size):
   asize = np.size(a)
@@ -177,15 +173,13 @@ print(f"mean MSE: {mse}")
 ################################ Party Zone ###################################
 ###############################################################################
 
-import tensorflow.contrib.layers as lays
-# from tensorflow.tools.api.generator.api.nn import conv1d
-from tensorflow.contrib.nn import conv1d_transpose
 
 epoch_num = 5
 lr = 0.001
 
 def autoencoder(inputs):
     inputs = tf.reshape(inputs, [tf.shape(inputs)[0], 16, 16, 1])
+    # encoder
     # 16 x 16 x 1   ->  8 x 8 x 16
     # 8 x 8 x 16    ->  4 x 4 x 8
     # 4 x 4 x 8     ->  2 x 2 x 4
@@ -209,7 +203,3 @@ loss = tf.reduce_mean(tf.square(ae_outputs - ae_inputs))  # claculate the mean s
 train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
 
 init = tf.global_variables_initializer()
-"""
-with tf.Session() as sess:
-    sess.run(init)
-   """ 
